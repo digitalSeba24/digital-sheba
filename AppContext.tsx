@@ -86,6 +86,13 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | undefined>(undefined);
 
+// ইউনিক ও নিরাপদ আইডি জেনারেটর (Collision Prevention)
+function generateUniqueId(prefix: string): string {
+  const timestamp = Date.now().toString(36);
+  const randomPart = Math.random().toString(36).substring(2, 7);
+  return `${prefix}-${timestamp}-${randomPart}`.toUpperCase();
+}
+
 function loadInitialState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -99,7 +106,6 @@ function loadInitialState(): AppState {
       mergedServices = parsed.services.map((saved) => {
         const base = baseServiceMap.get(saved.id);
         if (!base) {
-          // Custom Admin-added service
           return saved;
         }
         return {
@@ -110,7 +116,7 @@ function loadInitialState(): AppState {
           descriptionEn: saved.descriptionEn ?? base.descriptionEn,
           category: saved.category || base.category,
           basePrice:
-            typeof saved.basePrice === 'number'
+            typeof saved.basePrice === 'number' && Number.isFinite(saved.basePrice)
               ? saved.basePrice
               : base.basePrice,
           isDynamic:
@@ -119,7 +125,7 @@ function loadInitialState(): AppState {
               : base.isDynamic,
           active:
             typeof saved.active === 'boolean' ? saved.active : base.active,
-          options: saved.options || base.options,
+          options: Array.isArray(saved.options) ? saved.options : base.options,
           badgeTag: saved.badgeTag ?? base.badgeTag,
           iconName: saved.iconName || base.iconName,
           customIconUrl: saved.customIconUrl,
@@ -129,17 +135,15 @@ function loadInitialState(): AppState {
 
     return {
       language: parsed.language === 'en' ? 'en' : 'bn',
-      users: Array.isArray(parsed.users)
-        ? parsed.users
-        : INITIAL_APP_STATE.users,
+      users: Array.isArray(parsed.users) ? parsed.users : INITIAL_APP_STATE.users,
       currentUserId:
-        parsed.currentUserId !== undefined
+        typeof parsed.currentUserId === 'string' || parsed.currentUserId === null
           ? parsed.currentUserId
           : INITIAL_APP_STATE.currentUserId,
       services: mergedServices,
-      orders: parsed.orders || INITIAL_APP_STATE.orders,
-      recharges: parsed.recharges || INITIAL_APP_STATE.recharges,
-      transactions: parsed.transactions || INITIAL_APP_STATE.transactions,
+      orders: Array.isArray(parsed.orders) ? parsed.orders : INITIAL_APP_STATE.orders,
+      recharges: Array.isArray(parsed.recharges) ? parsed.recharges : INITIAL_APP_STATE.recharges,
+      transactions: Array.isArray(parsed.transactions) ? parsed.transactions : INITIAL_APP_STATE.transactions,
       settings: {
         ...INITIAL_APP_STATE.settings,
         ...(parsed.settings || {}),
@@ -160,7 +164,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
-      // Handle storage quota gracefully if large screenshots were uploaded
+      // Handle storage quota gracefully
     }
   }, [state]);
 
@@ -181,6 +185,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const login = (whatsapp: string, password: string): ActionResult => {
+    if (!whatsapp || !password) {
+      return {
+        ok: false,
+        message: isEn ? 'Please provide WhatsApp and password.' : 'নম্বর ও পাসওয়ার্ড দিন।',
+      };
+    }
     const normalizedInput = normalizeWhatsappNumber(whatsapp.trim());
     const rawDigits = whatsapp.replace(/\D/g, '');
     const user = state.users.find((u) => {
@@ -263,7 +273,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     const newUser: User = {
-      id: `usr-${Date.now()}`,
+      id: generateUniqueId('usr'),
       name: cleanName,
       mobile: normalizedWa,
       password,
@@ -300,16 +310,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsAdminUnlocked(true);
       return {
         ok: true,
-        message: isEn
-          ? 'Admin panel unlocked.'
-          : 'অ্যাডমিন প্যানেল আনলক হয়েছে।',
+        message: isEn ? 'Admin panel unlocked.' : 'অ্যাডমিন প্যানেল আনলক হয়েছে।',
       };
     }
     return {
       ok: false,
       message: isEn
-        ? 'Incorrect PIN! Please enter the valid 4-digit PIN (Default: 1234).'
-        : 'ভুল পিন! অনুগ্রহ করে সঠিক ৪ ডিজিটের পিন দিন (ডিফল্ট: 1234)।',
+        ? 'Incorrect PIN! Please enter the valid PIN.'
+        : 'ভুল পিন! সঠিক অ্যাডমিন পিন দিন।',
     };
   };
 
@@ -331,7 +339,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           : 'রিচার্জ করার আগে অনুগ্রহ করে লগইন করুন।',
       };
     }
-    if (!payload.amount || payload.amount < 10) {
+    const cleanAmount = Number(payload.amount);
+    if (!Number.isFinite(cleanAmount) || cleanAmount < 10) {
       return {
         ok: false,
         message: isEn
@@ -339,7 +348,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           : 'ন্যূনতম ১০ টাকা রিচার্জ করতে হবে।',
       };
     }
-    if (!payload.senderNumber.trim() || !payload.trxId.trim()) {
+    if (!payload.senderNumber?.trim() || !payload.trxId?.trim()) {
       return {
         ok: false,
         message: isEn
@@ -349,12 +358,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     const newReq: RechargeRequest = {
-      id: `RCH-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: generateUniqueId('RCH'),
       userId: currentUser.id,
       userName: currentUser.name,
       userMobile: currentUser.mobile,
       method: payload.method,
-      amount: Math.round(payload.amount),
+      amount: Math.round(cleanAmount),
       senderNumber: payload.senderNumber.trim(),
       trxId: payload.trxId.trim().toUpperCase(),
       status: 'Pending',
@@ -369,8 +378,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     return {
       ok: true,
       message: isEn
-        ? 'Recharge request submitted. Admin will verify and credit your wallet.'
-        : 'আপনার রিচার্জ রিকোয়েস্ট জমা হয়েছে। অ্যাডমিন যাচাই করে ব্যালেন্স যুক্ত করবেন।',
+        ? 'Recharge request submitted successfully.'
+        : 'আপনার রিচার্জ রিকোয়েস্ট জমা হয়েছে।',
     };
   };
 
@@ -389,29 +398,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           : 'অর্ডার করতে অনুগ্রহ করে প্রথমে লগইন করুন।',
       };
     }
-    if (currentUser.balance < payload.totalPrice) {
+
+    const cleanPrice = Number(payload.totalPrice);
+    if (!Number.isFinite(cleanPrice) || cleanPrice <= 0) {
+      return {
+        ok: false,
+        message: isEn ? 'Invalid order amount.' : 'অর্ডারের মূল্য সঠিক নয়।',
+      };
+    }
+
+    // ফ্রেশ ইউজার ব্যালেন্স স্টেট নিশ্চিতকরণ
+    const freshUser = state.users.find((u) => u.id === currentUser.id) || currentUser;
+    if (freshUser.balance < cleanPrice) {
       return {
         ok: false,
         message: isEn
-          ? `Insufficient balance. Needed ${payload.totalPrice}৳, available ${currentUser.balance}৳.`
-          : `আপনার ওয়ালেটে পর্যাপ্ত ব্যালেন্স নেই। প্রয়োজন ${payload.totalPrice}৳, বর্তমান ব্যালেন্স ${currentUser.balance}৳।`,
+          ? `Insufficient balance. Needed ${cleanPrice}৳, available ${freshUser.balance}৳.`
+          : `আপনার ওয়ালেটে পর্যাপ্ত ব্যালেন্স নেই। প্রয়োজন ${cleanPrice}৳, বর্তমান ব্যালেন্স ${freshUser.balance}৳।`,
       };
     }
 
     const now = new Date().toISOString();
-    const orderId = `ORD-${Math.floor(1050 + Math.random() * 8900)}`;
+    const orderId = generateUniqueId('ORD');
 
     const newOrder: Order = {
       id: orderId,
-      userId: currentUser.id,
-      userName: currentUser.name,
-      userMobile: currentUser.mobile,
+      userId: freshUser.id,
+      userName: freshUser.name,
+      userMobile: freshUser.mobile,
       serviceId: payload.service.id,
       serviceTitle: payload.service.title,
       selectedOptionLabel: payload.selectedOptionLabel,
-      totalPrice: payload.totalPrice,
-      entries: payload.entries,
-      attachments: payload.attachments,
+      totalPrice: cleanPrice,
+      entries: payload.entries || [],
+      attachments: payload.attachments || [],
       status: 'Pending',
       adminNote: '',
       createdAt: now,
@@ -419,11 +439,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     const newTxn: WalletTransaction = {
-      id: `TXN-${Date.now().toString().slice(-6)}`,
-      userId: currentUser.id,
-      userName: currentUser.name,
+      id: generateUniqueId('TXN'),
+      userId: freshUser.id,
+      userName: freshUser.name,
       type: 'debit',
-      amount: payload.totalPrice,
+      amount: cleanPrice,
       description: `অর্ডার পেমেন্ট: ${payload.service.title} (${orderId})`,
       createdAt: now,
     };
@@ -431,8 +451,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     setState((prev) => ({
       ...prev,
       users: prev.users.map((u) =>
-        u.id === currentUser.id
-          ? { ...u, balance: u.balance - payload.totalPrice }
+        u.id === freshUser.id
+          ? { ...u, balance: u.balance - cleanPrice }
           : u
       ),
       orders: [newOrder, ...prev.orders],
@@ -442,8 +462,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     return {
       ok: true,
       message: isEn
-        ? `Order (${orderId}) submitted and ${payload.totalPrice}৳ deducted from wallet.`
-        : `অর্ডার (${orderId}) সফলভাবে জমা হয়েছে এবং ${payload.totalPrice}৳ ওয়ালেট থেকে কাটা হয়েছে।`,
+        ? `Order (${orderId}) submitted and ${cleanPrice}৳ deducted.`
+        : `অর্ডার (${orderId}) সফলভাবে জমা হয়েছে এবং ${cleanPrice}৳ কাটা হয়েছে।`,
       orderId,
     };
   };
@@ -460,14 +480,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const now = new Date().toISOString();
     const txn: WalletTransaction = {
-      id: `TXN-${Date.now().toString().slice(-6)}`,
+      id: generateUniqueId('TXN'),
       userId: req.userId,
       userName: req.userName,
       type: 'credit',
       amount: req.amount,
-      description: `${
-        req.method === 'bKash' ? 'বিকাশ' : 'নগদ'
-      } রিচার্জ অনুমোদিত (TrxID: ${req.trxId})`,
+      description: `${req.method === 'bKash' ? 'বিকাশ' : 'নগদ'} রিচার্জ অনুমোদিত (TrxID: ${req.trxId})`,
       createdAt: now,
     };
 
@@ -513,9 +531,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           ? {
               ...r,
               status: 'Rejected',
-              adminNote:
-                reason?.trim() ||
-                'ট্রানজেকশন আইডি মেলেনি বা পেমেন্ট পাওয়া যায়নি।',
+              adminNote: reason?.trim() || 'ট্রানজেকশন আইডি মেলেনি।',
               processedAt: now,
             }
           : r
@@ -534,6 +550,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!order) return { ok: false, message: 'অর্ডার পাওয়া যায়নি।' };
 
     const now = new Date().toISOString();
+    // রিফান্ড ডুপ্লিকেশন রোধ: শুধুমাত্র Pending বা InProgress থেকে Cancelled হলে একবারই রিফান্ড হবে
     const shouldRefund =
       status === 'Cancelled' && order.status !== 'Cancelled';
 
@@ -549,7 +566,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const updatedTransactions = shouldRefund
         ? [
             {
-              id: `TXN-${Date.now().toString().slice(-6)}`,
+              id: generateUniqueId('TXN'),
               userId: order.userId,
               userName: order.userName,
               type: 'refund' as const,
@@ -570,8 +587,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             ? {
                 ...o,
                 status,
-                adminNote:
-                  adminNote !== undefined ? adminNote : o.adminNote,
+                adminNote: adminNote !== undefined ? adminNote : o.adminNote,
                 updatedAt: now,
               }
             : o
@@ -595,19 +611,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         o.id === orderId ? { ...o, adminNote, updatedAt: now } : o
       ),
     }));
-    return { ok: true, message: 'ডেলিভারি নোট সংরক্ষণ করা হয়েছে।' };
+    return { ok: true, message: 'নোট সংরক্ষণ করা হয়েছে।' };
   };
 
   const addService = (
     payload: Omit<ServiceItem, 'id' | 'orderNumber'>
   ): ActionResult => {
     const maxOrder = state.services.reduce(
-      (max, s) => Math.max(max, s.orderNumber),
+      (max, s) => Math.max(max, s.orderNumber || 0),
       0
     );
     const created: ServiceItem = {
       ...payload,
-      id: `srv-custom-${Date.now()}`,
+      id: generateUniqueId('srv'),
       orderNumber: maxOrder + 1,
     };
     setState((prev) => ({
@@ -616,9 +632,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }));
     return {
       ok: true,
-      message: isEn
-        ? `"${created.title}" added successfully.`
-        : `"${created.title}" নতুন সেবা হিসেবে যুক্ত হয়েছে।`,
+      message: isEn ? 'Service added successfully.' : 'সেবাটি সফলভাবে যুক্ত হয়েছে।',
     };
   };
 
@@ -629,23 +643,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }));
     return {
       ok: true,
-      message: isEn
-        ? `"${updated.title}" updated successfully.`
-        : `"${updated.title}" সার্ভিস আপডেট হয়েছে।`,
+      message: isEn ? 'Service updated successfully.' : 'সেবা আপডেট হয়েছে।',
     };
   };
 
   const deleteService = (serviceId: string): ActionResult => {
-    const target = state.services.find((s) => s.id === serviceId);
     setState((prev) => ({
       ...prev,
       services: prev.services.filter((s) => s.id !== serviceId),
     }));
     return {
       ok: true,
-      message: isEn
-        ? `"${target?.title || 'Service'}" deleted.`
-        : `"${target?.title || 'সেবা'}" মুছে ফেলা হয়েছে।`,
+      message: isEn ? 'Service deleted.' : 'সেবা মুছে ফেলা হয়েছে।',
     };
   };
 
@@ -665,10 +674,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   ): ActionResult => {
     const target = state.users.find((u) => u.id === userId);
     if (!target) return { ok: false, message: 'ইউজার পাওয়া যায়নি।' };
-    if (delta === 0 || Number.isNaN(delta)) {
+    const cleanDelta = Number(delta);
+    if (!Number.isFinite(cleanDelta) || cleanDelta === 0) {
       return { ok: false, message: 'সঠিক টাকার পরিমাণ লিখুন।' };
     }
-    const nextBalance = target.balance + delta;
+    const nextBalance = target.balance + cleanDelta;
     if (nextBalance < 0) {
       return {
         ok: false,
@@ -678,16 +688,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const now = new Date().toISOString();
     const txn: WalletTransaction = {
-      id: `TXN-${Date.now().toString().slice(-6)}`,
+      id: generateUniqueId('TXN'),
       userId: target.id,
       userName: target.name,
       type: 'admin_adjust',
-      amount: Math.abs(delta),
+      amount: Math.abs(cleanDelta),
       description:
         note.trim() ||
-        (delta > 0
-          ? `অ্যাডমিন কর্তৃক ব্যালেন্স যুক্ত (+${delta}৳)`
-          : `অ্যাডমিন কর্তৃক ব্যালেন্স কর্তন (-${Math.abs(delta)}৳)`),
+        (cleanDelta > 0
+          ? `অ্যাডমিন ব্যালেন্স যুক্ত (+${cleanDelta}৳)`
+          : `অ্যাডমিন ব্যালেন্স কর্তন (-${Math.abs(cleanDelta)}৳)`),
       createdAt: now,
     };
 
@@ -701,41 +711,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
     return {
       ok: true,
-      message: `${target.name}-এর ব্যালেন্স আপডেট করে ${nextBalance}৳ করা হয়েছে।`,
+      message: `${target.name}-এর ব্যালেন্স আপডেট করা হয়েছে।`,
     };
   };
 
   const deleteUser = (userId: string): ActionResult => {
-    const target = state.users.find((u) => u.id === userId);
-    if (!target) {
-      return {
-        ok: false,
-        message: isEn ? 'User not found.' : 'ইউজার পাওয়া যায়নি।',
-      };
-    }
-
     setState((prev) => ({
       ...prev,
       users: prev.users.filter((u) => u.id !== userId),
       currentUserId: prev.currentUserId === userId ? null : prev.currentUserId,
     }));
-
     return {
       ok: true,
-      message: isEn
-        ? `User "${target.name}" permanently removed.`
-        : `"${target.name}" অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলা হয়েছে।`,
+      message: isEn ? 'User account removed.' : 'ইউজার অ্যাকাউন্ট মুছে ফেলা হয়েছে।',
     };
   };
 
   const updateSettings = (settings: AppSettings): ActionResult => {
-    if (!settings.rechargeNumber.trim() || !settings.adminWhatsapp.trim()) {
+    if (!settings.rechargeNumber?.trim() || !settings.adminWhatsapp?.trim()) {
       return {
         ok: false,
-        message: 'রিচার্জ ও হোয়াটসঅ্যাপ নম্বর খালি রাখা যাবে না।',
+        message: 'নম্বর খালি রাখা যাবে না।',
       };
     }
-    if (!settings.adminPin.trim() || settings.adminPin.trim().length < 4) {
+    if (!settings.adminPin?.trim() || settings.adminPin.trim().length < 4) {
       return {
         ok: false,
         message: 'অ্যাডমিন পিন কমপক্ষে ৪ ডিজিটের হতে হবে।',
@@ -744,9 +743,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     setState((prev) => ({ ...prev, settings }));
     return {
       ok: true,
-      message: isEn
-        ? 'App settings saved successfully.'
-        : 'অ্যাপ সেটিংস ও কন্টেন্ট সফলভাবে সংরক্ষণ করা হয়েছে।',
+      message: isEn ? 'Settings saved successfully.' : 'সেটিংস সফলভাবে সংরক্ষিত হয়েছে।',
     };
   };
 
