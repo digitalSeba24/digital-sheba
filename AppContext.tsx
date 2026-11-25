@@ -12,9 +12,9 @@ import {
   ServiceItem,
   User,
   WalletTransaction,
-} from '../types';
-import { INITIAL_APP_STATE, normalizeWhatsappNumber } from '../data/seedData';
-import { INITIAL_SERVICES } from '../data/services';
+} from './types';
+import { INITIAL_APP_STATE, normalizeWhatsappNumber } from './seedData';
+import { INITIAL_SERVICES } from './services';
 
 const STORAGE_KEY = 'digital_sheba_v1';
 
