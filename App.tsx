@@ -5,16 +5,16 @@
 
 import React, { useState } from 'react';
 import { Megaphone, MessageCircle } from 'lucide-react';
-import { AdminPanel } from './components/AdminPanel';
-import { AdminPinModal } from './components/AdminPinModal';
-import { AuthModal } from './components/AuthModal';
-import { Navbar, UserTab, ViewMode } from './components/Navbar';
-import { OrdersView } from './components/OrdersView';
-import { ServiceCatalog } from './components/ServiceCatalog';
-import { ServiceOrderModal } from './components/ServiceOrderModal';
-import { SupportView } from './components/SupportView';
-import { UserDashboard } from './components/UserDashboard';
-import { WalletView } from './components/WalletView';
+import { AdminPanel } from './AdminPanel';
+import { AdminPinModal } from './AdminPinModal';
+import { AuthModal } from './AuthModal';
+import { Navbar, UserTab, ViewMode } from './Navbar';
+import { OrdersView } from './OrdersView';
+import { ServiceCatalog } from './ServiceCatalog';
+import { ServiceOrderModal } from './ServiceOrderModal';
+import { SupportView } from './SupportView';
+import { UserDashboard } from './UserDashboard';
+import { WalletView } from './WalletView';
 import { AppProvider, useApp } from './context/AppContext';
 import { ServiceItem } from './types';
 
