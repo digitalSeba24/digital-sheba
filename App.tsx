@@ -17,6 +17,7 @@ import { UserDashboard } from './UserDashboard';
 import { AppProvider, useApp } from './AppContext';
 import { WalletView } from './WalletView';
 import { ServiceItem } from './types';
+
 const DigitalShebaShell: React.FC = () => {
   const { state, language, currentUser } = useApp();
   const isEn = language === 'en';
