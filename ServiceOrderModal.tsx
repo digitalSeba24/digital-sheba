@@ -9,9 +9,9 @@ import {
   Wallet,
   X,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { getLocalizedService } from '../data/i18n';
-import { formatBDT } from '../data/seedData';
+import { useApp } from './AppContext';
+import { getLocalizedService } from './i18n';
+import { formatBDT } from './seedData';
 import {
   FormFieldSchema,
   OrderAttachment,
