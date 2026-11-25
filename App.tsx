@@ -14,9 +14,9 @@ import { ServiceCatalog } from './ServiceCatalog';
 import { ServiceOrderModal } from './ServiceOrderModal';
 import { SupportView } from './SupportView';
 import { UserDashboard } from './UserDashboard';
-import WalletView from './WalletView';
-import { ServiceItem } from './types';
-
+import { AppProvider, useApp } from './AppContext';
+import { WalletView } from './WalletView';
+import { ServiceItem } from './types';,
 const DigitalShebaShell: React.FC = () => {
   const { state, language, currentUser } = useApp();
   const isEn = language === 'en';
