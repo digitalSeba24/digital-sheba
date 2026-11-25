@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { KeyRound, Lock, ShieldCheck, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-
 interface AdminPinModalProps {
   isOpen: boolean;
   onClose: () => void;
