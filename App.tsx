@@ -16,15 +16,14 @@ import { SupportView } from './SupportView';
 import { UserDashboard } from './UserDashboard';
 import { AppProvider, useApp } from './AppContext';
 import { WalletView } from './WalletView';
-import { ServiceItem } from './types';,
+import { ServiceItem } from './types';
+
 const DigitalShebaShell: React.FC = () => {
   const { state, language, currentUser } = useApp();
   const isEn = language === 'en';
   const [viewMode, setViewMode] = useState<ViewMode>('user');
   const [activeTab, setActiveTab] = useState<UserTab>('home');
-  const [selectedService, setSelectedService] = useState<ServiceItem | null>(
-    null
-  );
+  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isAdminPinOpen, setIsAdminPinOpen] = useState(false);
 
