@@ -18,9 +18,9 @@ import {
   Wallet,
   XCircle,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { CATEGORY_LABELS_I18N } from '../data/i18n';
-import { formatBDT, formatDateTimeBn, INITIAL_APP_STATE } from '../data/seedData';
+import { useApp } from './AppContext';
+import { CATEGORY_LABELS_I18N } from './i18n';
+import { formatBDT, formatDateTimeBn, INITIAL_APP_STATE } from './seedData';
 import { FaqItem, Order, OrderStatus, ServiceItem } from '../types';
 import { AdminServiceEditModal } from './AdminServiceEditModal';
 import { ServiceIcon } from './ServiceIcon';
