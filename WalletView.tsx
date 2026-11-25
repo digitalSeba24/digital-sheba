@@ -9,9 +9,9 @@ import {
   Send,
   Wallet,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { formatBDT, formatDateTimeBn } from '../data/seedData';
-import { RechargeMethod } from '../types';
+import { useApp } from './AppContext';
+import { formatBDT, formatDateTimeBn } from './seedData';
+import { RechargeMethod } from './types';
 import { RechargeStatusBadge } from './StatusBadge';
 
 interface WalletViewProps {
