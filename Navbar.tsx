@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  ArrowLeft,
+  
   ClipboardList,
   Globe,
   Headphones,
@@ -8,7 +8,7 @@ import {
   LogIn,
   Wallet,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp } from './AppContext';
 import { BrandLogo } from './BrandLogo';
 
 export type UserTab = 'home' | 'orders' | 'wallet' | 'support';
