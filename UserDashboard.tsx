@@ -7,7 +7,7 @@ import {
   PlusCircle,
   UserCheck,
   Wallet,
-} import { useApp } from './AppContext';
+
 import { formatBDT } from './seedData';
 import { useAppInstall } from './useAppInstall';
 
