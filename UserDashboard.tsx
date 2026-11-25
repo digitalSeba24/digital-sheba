@@ -9,7 +9,6 @@ import {
   Wallet,
 
 import { formatBDT } from './seedData';
-import { useAppInstall } from './useAppInstall';
 
 import { BrandLogo } from './BrandLogo';
 import { UserTab } from './Navbar';
