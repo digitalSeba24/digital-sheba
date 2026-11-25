@@ -9,8 +9,8 @@ import {
   MessageCircle,
   ShieldCheck,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { INITIAL_APP_STATE } from '../data/seedData';
+import { useApp } from './AppContext';
+import { INITIAL_APP_STATE } from './seedData';
 
 export const SupportView: React.FC = () => {
   const { state, language } = useApp();
