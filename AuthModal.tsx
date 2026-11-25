@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, MessageCircle, User as UserIcon, X } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp } from './AppContext';
 import { BrandLogo } from './BrandLogo';
 
 interface AuthModalProps {
