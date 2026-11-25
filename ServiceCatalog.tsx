@@ -7,12 +7,13 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import { useApp } from './AppContext';
-import {
-  CATEGORY_LABELS_I18N,
-  getLocalizedService,
-  from './i18n';
-} from '../data/i18n';
+import { useApp } from './AppContext'; 
+import { CATEGORY_LABELS_I18N, getLocalizedService } from './i18n';
+
+  
+  
+  
+
 import { formatBDT } from './seedData';
 import { ServiceCategory, ServiceItem } from './types';
 import { ServiceIcon } from './ServiceIcon';
