@@ -14,7 +14,7 @@ import { ServiceCatalog } from './ServiceCatalog';
 import { ServiceOrderModal } from './ServiceOrderModal';
 import { SupportView } from './SupportView';
 import { UserDashboard } from './UserDashboard';
-import { AppProvider, useApp } from './AppContext';
+import WalletView from './WalletView';
 import { ServiceItem } from './types';
 
 const DigitalShebaShell: React.FC = () => {
