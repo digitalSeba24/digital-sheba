@@ -7,10 +7,10 @@ import {
   PlusCircle,
   UserCheck,
   Wallet,
-} from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { formatBDT } from '../data/seedData';
-import { useAppInstall } from '../hooks/useAppInstall';
+} import { useApp } from './AppContext';
+import { formatBDT } from './seedData';
+import { useAppInstall } from './useAppInstall';
+
 import { BrandLogo } from './BrandLogo';
 import { UserTab } from './Navbar';
 
