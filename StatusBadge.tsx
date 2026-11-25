@@ -1,8 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Clock, Loader2, XCircle } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { OrderStatus, RechargeStatus } from '../types';
-
+import { useApp } from './AppContext';
+import { OrderStatus, RechargeStatus } from './types';
 export const OrderStatusBadge: React.FC<{ status: OrderStatus }> = ({
   status,
 }) => {
