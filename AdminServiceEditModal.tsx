@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ImagePlus, Plus, Save, Trash2, X } from 'lucide-react';
-import { CATEGORY_LABELS_I18N } from '../data/i18n';
+import { CATEGORY_LABELS_I18N } from './i18n';
 import {
   FieldType,
   FormFieldSchema,
