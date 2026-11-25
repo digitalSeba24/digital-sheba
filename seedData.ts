@@ -1,4 +1,5 @@
-import { AppState } from '../types';
+
+import type { AppState } from './types';
 import { INITIAL_SERVICES } from './services';
 
 export const INITIAL_APP_STATE: AppState = {
@@ -72,7 +73,11 @@ export const INITIAL_APP_STATE: AppState = {
       selectedOptionLabel: 'টু-ফ্যাক্টর (2FA) কোড সমস্যা',
       totalPrice: 800,
       entries: [
-        { key: 'accountName', label: 'অ্যাকাউন্টের নাম', value: 'Rafi Ahmed' },
+        {
+          key: 'accountName',
+          label: 'অ্যাকাউন্টের নাম',
+          value: 'Rafi Ahmed',
+        },
         {
           key: 'priceOption',
           label: 'সমস্যার ধরন নির্বাচন করুন',
@@ -288,8 +293,10 @@ export function formatDateTimeBn(
 
 export function normalizeWhatsappNumber(raw: string): string {
   const digits = raw.replace(/\D/g, '');
+
   if (digits.startsWith('01') && digits.length === 11) {
     return `88${digits}`;
   }
+
   return digits;
 }
