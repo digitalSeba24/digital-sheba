@@ -9,8 +9,8 @@ import {
   LogIn,
   MessageSquareText,
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { formatBDT, formatDateTimeBn } from '../data/seedData';
+import { useApp } from './AppContext';
+import { formatBDT, formatDateTimeBn } from './seedData';
 import { Order, OrderStatus } from '../types';
 import { OrderStatusBadge } from './StatusBadge';
 
